@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Access Portal</title>
+    <style>
+        :root {
+            --primary: #0f1923;
+            --secondary: #13202c;
+            --accent: #00f0ff;
+            --text: #e8f4fc;
+            --error: #ff3a5e;
+            --success: #00d95f;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            background-color: var(--primary);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(0, 240, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(0, 240, 255, 0.1) 0%, transparent 50%);
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 500px;
+            background-color: var(--secondary);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                transparent 0%,
+                transparent 45%,
+                var(--accent) 50%,
+                transparent 55%,
+                transparent 100%
+            );
+            opacity: 0.1;
+            animation: shine 8s infinite linear;
+            z-index: -1;
+        }
+        
+        @keyframes shine {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: var(--accent);
+            position: relative;
+        }
+        
+        h1::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: var(--accent);
+            margin: 10px auto 0;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(232, 244, 252, 0.8);
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: rgba(15, 25, 35, 0.5);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 16px;
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.2);
+        }
+        
+        .error-message {
+            color: var(--error);
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .success-message {
+            color: var(--success);
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .voice-section {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .voice-btn {
+            background: linear-gradient(135deg, var(--accent), #0084ff);
+            color: var(--primary);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 240, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .voice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 240, 255, 0.4);
+        }
+        
+        .voice-btn:active {
+            transform: translateY(0);
+        }
+        
+        .voice-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                transparent 0%,
+                transparent 45%,
+                rgba(255, 255, 255, 0.3) 50%,
+                transparent 55%,
+                transparent 100%
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .voice-btn:hover::after {
+            opacity: 1;
+            animation: shine 3s infinite linear;
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 240, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
+        }
+        
+        .status {
+            margin-top: 15px;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        
+        .unlocked-content {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .key-display {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, var(--accent), #0084ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 6px;
+            display: inline-block;
+        }
+        
+        .decoration {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+        
+        .decoration:nth-child(1) {
+            top: -50px;
+            left: -50px;
+        }
+        
+        .decoration:nth-child(2) {
+            bottom: -30px;
+            right: -30px;
+            width: 150px;
+            height: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="decoration"></div>
+    <div class="decoration"></div>
+    
+    <div class="container">
+        <div id="passcode-section">
+            <h1>SECURE ACCESS</h1>
+            <div class="input-group">
+                <label for="passcode">ENTER PASSCODE</label>
+                <input type="text" id="passcode" maxlength="4" inputmode="numeric" pattern="\d{4}" placeholder="••••">
+                <div class="error-message" id="error-message">Invalid passcode. Please try again.</div>
+                <div class="success-message" id="success-message">Access granted. Welcome!</div>
+            </div>
+        </div>
+        
+        <div id="voice-section" class="voice-section">
+            <h2>VOICE VERIFICATION</h2>
+            <p>Please read the following phrase aloud:</p>
+            <div style="font-size: 18px; margin: 20px 0; padding: 15px; background-color: rgba(0, 240, 255, 0.1); border-left: 3px solid var(--accent);">
+                "Cheers to fame"
+            </div>
+            <button id="voice-btn" class="voice-btn pulse">
+                START VERIFICATION
+            </button>
+            <div class="status" id="voice-status"></div>
+        </div>
+        
+        <div id="unlocked-content" class="unlocked-content">
+            <h1>ACCESS GRANTED</h1>
+            <div id="welcome-message"></div>
+            <p>Your voice has been confirmed through our secure channels.</p>
+            <p>Your key is:</p>
+            <div class="key-display">2001</div>
+            <p>This key will expire in 24 hours.</p>
+        </div>
+    </div>
+
+    <script>
+        // Simulated database from base.txt
+        const passcodeDatabase = [
+            { passcode: "1234", name: "John Doe" },
+            { passcode: "5678", name: "Jane Smith" },
+            { passcode: "9012", name: "Alex Johnson" },
+            { passcode: "3456", name: "Emily Davis" }
+        ];
+        
+        const passcodeInput = document.getElementById('passcode');
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+        const passcodeSection = document.getElementById('passcode-section');
+        const voiceSection = document.getElementById('voice-section');
+        const voiceBtn = document.getElementById('voice-btn');
+        const voiceStatus = document.getElementById('voice-status');
+        const unlockedContent = document.getElementById('unlocked-content');
+        const welcomeMessage = document.getElementById('welcome-message');
+        
+        let currentUser = null;
+        
+        // Auto-submit when 4 digits are entered
+        passcodeInput.addEventListener('input', function() {
+            if (this.value.length === 4) {
+                verifyPasscode(this.value);
+            }
+        });
+        
+        function verifyPasscode(code) {
+            const user = passcodeDatabase.find(u => u.passcode === code);
+            
+            if (user) {
+                // Valid passcode
+                currentUser = user;
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'block';
+                passcodeInput.style.borderColor = 'var(--success)';
+                
+                // Transition to voice verification
+                setTimeout(() => {
+                    passcodeSection.style.display = 'none';
+                    voiceSection.style.display = 'block';
+                }, 1000);
+            } else {
+                // Invalid passcode
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+                passcodeInput.style.borderColor = 'var(--error)';
+                passcodeInput.value = '';
+            }
+        }
+        
+        // Voice verification
+        voiceBtn.addEventListener('click', function() {
+            if (!('webkitSpeechRecognition' in window) && !('speechRecognition' in window)) {
+                voiceStatus.textContent = "Voice recognition not supported in your browser.";
+                voiceStatus.style.color = "var(--error)";
+                return;
+            }
+            
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            
+            voiceBtn.classList.remove('pulse');
+            voiceBtn.textContent = "LISTENING...";
+            voiceStatus.textContent = "Speak now: 'Cheers to fame'";
+            voiceStatus.style.color = "var(--accent)";
+            
+            recognition.onresult = function(event) {
+                const spokenText = event.results[0][0].transcript.trim().toLowerCase();
+                
+                if (spokenText.includes("cheers to fame")) {
+                    voiceStatus.textContent = "Verification successful!";
+                    voiceStatus.style.color = "var(--success)";
+                    voiceBtn.textContent = "VERIFIED";
+                    voiceBtn.style.background = "linear-gradient(135deg, var(--success), #00a84e)";
+                    
+                    // Show unlocked content
+                    setTimeout(() => {
+                        voiceSection.style.display = 'none';
+                        welcomeMessage.textContent = `Hi ${currentUser.name},`;
+                        unlockedContent.style.display = 'block';
+                    }, 1500);
+                } else {
+                    voiceStatus.textContent = "Phrase not recognized. Please try again.";
+                    voiceStatus.style.color = "var(--error)";
+                    voiceBtn.textContent = "TRY AGAIN";
+                    voiceBtn.classList.add('pulse');
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                voiceStatus.textContent = "Error occurred in recognition: " + event.error;
+                voiceStatus.style.color = "var(--error)";
+                voiceBtn.textContent = "TRY AGAIN";
+                voiceBtn.classList.add('pulse');
+            };
+            
+            recognition.start();
+        });
+    </script>
+</body>
+</html>
