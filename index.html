@@ -340,72 +340,58 @@
             }
         }
         
-// Voice verification
-voiceBtn.addEventListener('click', function() {
+// Voice verification - FINAL WORKING VERSION
+voiceBtn.addEventListener('click', async function() {
     if (!('webkitSpeechRecognition' in window)) {
-        voiceStatus.textContent = "Voice recognition not supported in your browser. Use Chrome.";
+        voiceStatus.textContent = "Use Chrome for best results!";
         voiceStatus.style.color = "var(--error)";
         return;
     }
-    
+
     const recognition = new webkitSpeechRecognition();
     recognition.lang = 'en-US';
     recognition.interimResults = false;
-    recognition.continuous = false; // Stop after first result
-    recognition.maxAlternatives = 1; // Only need one result
-    
-    // Set longer timeout before giving up
-    recognition.onstart = function() {
-        voiceBtn.classList.remove('pulse');
-        voiceBtn.textContent = "LISTENING... SPEAK NOW";
-        voiceStatus.textContent = "Speak clearly: 'Cheers to fame'";
-        voiceStatus.style.color = "var(--accent)";
-        
-        // Auto-restart if no speech detected within 5 seconds
-        setTimeout(() => {
-            if (voiceBtn.textContent === "LISTENING... SPEAK NOW") {
-                recognition.stop();
-                voiceStatus.textContent = "No speech detected. Trying again...";
-                setTimeout(() => recognition.start(), 500);
-            }
-        }, 5000);
-    };
-    
-    recognition.onresult = function(event) {
-        const spokenText = event.results[0][0].transcript.trim().toLowerCase();
-        
-        // Super flexible matching - just needs to contain "cheers" or "fame"
-        if (spokenText.includes("cheers") || spokenText.includes("fame")) {
-            voiceStatus.textContent = "Verification successful!";
-            voiceStatus.style.color = "var(--success)";
-            voiceBtn.textContent = "VERIFIED ✓";
-            voiceBtn.style.background = "linear-gradient(135deg, var(--success), #00a84e)";
-            
+    recognition.maxAlternatives = 1;
+
+    // 1. FIRST CHECK MIC PERMISSION
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop()); // Close mic after permission
+    } catch (error) {
+        voiceStatus.textContent = "MIC ACCESS BLOCKED! Allow mic permission.";
+        voiceStatus.style.color = "var(--error)";
+        return;
+    }
+
+    // 2. START LISTENING
+    voiceBtn.textContent = "SPEAK NOW!";
+    voiceStatus.textContent = "Say anything with 'cheers' or 'fame'...";
+    voiceStatus.style.color = "var(--accent)";
+
+    recognition.onresult = (event) => {
+        const spokenText = event.results[0][0].transcript.toLowerCase();
+        if (/cheers|fame/.test(spokenText)) {
+            voiceStatus.innerHTML = "✅ <strong>SUCCESS!</strong> Welcome in!";
+            voiceBtn.textContent = "ACCESS GRANTED";
             setTimeout(() => {
                 voiceSection.style.display = 'none';
-                welcomeMessage.textContent = `Hi ${currentUser.name},`;
                 unlockedContent.style.display = 'block';
-            }, 1500);
+            }, 1000);
         } else {
-            voiceStatus.textContent = `Heard: "${spokenText}". Try saying "Cheers to fame" more clearly`;
-            voiceStatus.style.color = "var(--error)";
-            voiceBtn.textContent = "TRY AGAIN";
-            voiceBtn.classList.add('pulse');
+            voiceStatus.innerHTML = `Heard: <strong>"${spokenText}"</strong>. Try again!`;
+            voiceBtn.textContent = "RETRY";
         }
     };
-    
-    recognition.onerror = function(event) {
+
+    recognition.onerror = (event) => {
         if (event.error === 'no-speech') {
-            voiceStatus.textContent = "No speech detected. Make sure your mic is working and allowed.";
-            setTimeout(() => recognition.start(), 1000);
+            voiceStatus.textContent = "🔇 NO MIC INPUT! Check mic & speak louder.";
         } else {
-            voiceStatus.textContent = "Error: " + event.error;
+            voiceStatus.textContent = `Error: ${event.error}`;
         }
-        voiceStatus.style.color = "var(--error)";
-        voiceBtn.textContent = "TRY AGAIN";
-        voiceBtn.classList.add('pulse');
+        voiceBtn.textContent = "FAILED - CLICK AGAIN";
     };
-    
+
     recognition.start();
 });
     </script>
