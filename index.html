@@ -359,8 +359,21 @@ voiceBtn.addEventListener('click', function() {
     
     recognition.onresult = function(event) {
         const spokenText = event.results[0][0].transcript.trim().toLowerCase();
+        const targetPhrase = "cheers to fame".toLowerCase();
         
-        if (spokenText.includes("cheers to fame")) {
+        // More flexible matching
+        const spokenWords = spokenText.split(/\s+/);
+        const targetWords = targetPhrase.split(/\s+/);
+        
+        let matchedWords = 0;
+        for (const word of targetWords) {
+            if (spokenText.includes(word)) {
+                matchedWords++;
+            }
+        }
+        
+        // Consider it a match if at least 2 words are recognized
+        if (matchedWords >= 2) {
             voiceStatus.textContent = "Verification successful!";
             voiceStatus.style.color = "var(--success)";
             voiceBtn.textContent = "VERIFIED";
@@ -373,7 +386,7 @@ voiceBtn.addEventListener('click', function() {
                 unlockedContent.style.display = 'block';
             }, 1500);
         } else {
-            voiceStatus.textContent = "Phrase not recognized. Please try again.";
+            voiceStatus.textContent = `Heard: "${spokenText}". Please say "Cheers to fame"`;
             voiceStatus.style.color = "var(--error)";
             voiceBtn.textContent = "TRY AGAIN";
             voiceBtn.classList.add('pulse');
@@ -387,7 +400,6 @@ voiceBtn.addEventListener('click', function() {
         voiceBtn.classList.add('pulse');
     };
     
-    // Add this line to make it work in Chrome
     recognition.start();
 });
     </script>
