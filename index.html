@@ -340,55 +340,56 @@
             }
         }
         
-        // Voice verification
-        voiceBtn.addEventListener('click', function() {
-            if (!('webkitSpeechRecognition' in window) && !('speechRecognition' in window)) {
-                voiceStatus.textContent = "Voice recognition not supported in your browser.";
-                voiceStatus.style.color = "var(--error)";
-                return;
-            }
+// Voice verification
+voiceBtn.addEventListener('click', function() {
+    if (!('webkitSpeechRecognition' in window)) {
+        voiceStatus.textContent = "Voice recognition not supported in your browser.";
+        voiceStatus.style.color = "var(--error)";
+        return;
+    }
+    
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    
+    voiceBtn.classList.remove('pulse');
+    voiceBtn.textContent = "LISTENING...";
+    voiceStatus.textContent = "Speak now: 'Cheers to fame'";
+    voiceStatus.style.color = "var(--accent)";
+    
+    recognition.onresult = function(event) {
+        const spokenText = event.results[0][0].transcript.trim().toLowerCase();
+        
+        if (spokenText.includes("cheers to fame")) {
+            voiceStatus.textContent = "Verification successful!";
+            voiceStatus.style.color = "var(--success)";
+            voiceBtn.textContent = "VERIFIED";
+            voiceBtn.style.background = "linear-gradient(135deg, var(--success), #00a84e)";
             
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-            
-            voiceBtn.classList.remove('pulse');
-            voiceBtn.textContent = "LISTENING...";
-            voiceStatus.textContent = "Speak now: 'Cheers to fame'";
-            voiceStatus.style.color = "var(--accent)";
-            
-            recognition.onresult = function(event) {
-                const spokenText = event.results[0][0].transcript.trim().toLowerCase();
-                
-                if (spokenText.includes("cheers to fame")) {
-                    voiceStatus.textContent = "Verification successful!";
-                    voiceStatus.style.color = "var(--success)";
-                    voiceBtn.textContent = "VERIFIED";
-                    voiceBtn.style.background = "linear-gradient(135deg, var(--success), #00a84e)";
-                    
-                    // Show unlocked content
-                    setTimeout(() => {
-                        voiceSection.style.display = 'none';
-                        welcomeMessage.textContent = `Hi ${currentUser.name},`;
-                        unlockedContent.style.display = 'block';
-                    }, 1500);
-                } else {
-                    voiceStatus.textContent = "Phrase not recognized. Please try again.";
-                    voiceStatus.style.color = "var(--error)";
-                    voiceBtn.textContent = "TRY AGAIN";
-                    voiceBtn.classList.add('pulse');
-                }
-            };
-            
-            recognition.onerror = function(event) {
-                voiceStatus.textContent = "Error occurred in recognition: " + event.error;
-                voiceStatus.style.color = "var(--error)";
-                voiceBtn.textContent = "TRY AGAIN";
-                voiceBtn.classList.add('pulse');
-            };
-            
-            recognition.start();
-        });
+            // Show unlocked content
+            setTimeout(() => {
+                voiceSection.style.display = 'none';
+                welcomeMessage.textContent = `Hi ${currentUser.name},`;
+                unlockedContent.style.display = 'block';
+            }, 1500);
+        } else {
+            voiceStatus.textContent = "Phrase not recognized. Please try again.";
+            voiceStatus.style.color = "var(--error)";
+            voiceBtn.textContent = "TRY AGAIN";
+            voiceBtn.classList.add('pulse');
+        }
+    };
+    
+    recognition.onerror = function(event) {
+        voiceStatus.textContent = "Error occurred in recognition: " + event.error;
+        voiceStatus.style.color = "var(--error)";
+        voiceBtn.textContent = "TRY AGAIN";
+        voiceBtn.classList.add('pulse');
+    };
+    
+    // Add this line to make it work in Chrome
+    recognition.start();
+});
     </script>
 </body>
 </html>
