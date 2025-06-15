@@ -343,7 +343,7 @@
 // Voice verification
 voiceBtn.addEventListener('click', function() {
     if (!('webkitSpeechRecognition' in window)) {
-        voiceStatus.textContent = "Voice recognition not supported in your browser.";
+        voiceStatus.textContent = "Voice recognition not supported in your browser. Use Chrome.";
         voiceStatus.style.color = "var(--error)";
         return;
     }
@@ -351,42 +351,43 @@ voiceBtn.addEventListener('click', function() {
     const recognition = new webkitSpeechRecognition();
     recognition.lang = 'en-US';
     recognition.interimResults = false;
+    recognition.continuous = false; // Stop after first result
+    recognition.maxAlternatives = 1; // Only need one result
     
-    voiceBtn.classList.remove('pulse');
-    voiceBtn.textContent = "LISTENING...";
-    voiceStatus.textContent = "Speak now: 'Cheers to fame'";
-    voiceStatus.style.color = "var(--accent)";
+    // Set longer timeout before giving up
+    recognition.onstart = function() {
+        voiceBtn.classList.remove('pulse');
+        voiceBtn.textContent = "LISTENING... SPEAK NOW";
+        voiceStatus.textContent = "Speak clearly: 'Cheers to fame'";
+        voiceStatus.style.color = "var(--accent)";
+        
+        // Auto-restart if no speech detected within 5 seconds
+        setTimeout(() => {
+            if (voiceBtn.textContent === "LISTENING... SPEAK NOW") {
+                recognition.stop();
+                voiceStatus.textContent = "No speech detected. Trying again...";
+                setTimeout(() => recognition.start(), 500);
+            }
+        }, 5000);
+    };
     
     recognition.onresult = function(event) {
         const spokenText = event.results[0][0].transcript.trim().toLowerCase();
-        const targetPhrase = "cheers to fame".toLowerCase();
         
-        // More flexible matching
-        const spokenWords = spokenText.split(/\s+/);
-        const targetWords = targetPhrase.split(/\s+/);
-        
-        let matchedWords = 0;
-        for (const word of targetWords) {
-            if (spokenText.includes(word)) {
-                matchedWords++;
-            }
-        }
-        
-        // Consider it a match if at least 2 words are recognized
-        if (matchedWords >= 2) {
+        // Super flexible matching - just needs to contain "cheers" or "fame"
+        if (spokenText.includes("cheers") || spokenText.includes("fame")) {
             voiceStatus.textContent = "Verification successful!";
             voiceStatus.style.color = "var(--success)";
-            voiceBtn.textContent = "VERIFIED";
+            voiceBtn.textContent = "VERIFIED ✓";
             voiceBtn.style.background = "linear-gradient(135deg, var(--success), #00a84e)";
             
-            // Show unlocked content
             setTimeout(() => {
                 voiceSection.style.display = 'none';
                 welcomeMessage.textContent = `Hi ${currentUser.name},`;
                 unlockedContent.style.display = 'block';
             }, 1500);
         } else {
-            voiceStatus.textContent = `Heard: "${spokenText}". Please say "Cheers to fame"`;
+            voiceStatus.textContent = `Heard: "${spokenText}". Try saying "Cheers to fame" more clearly`;
             voiceStatus.style.color = "var(--error)";
             voiceBtn.textContent = "TRY AGAIN";
             voiceBtn.classList.add('pulse');
@@ -394,7 +395,12 @@ voiceBtn.addEventListener('click', function() {
     };
     
     recognition.onerror = function(event) {
-        voiceStatus.textContent = "Error occurred in recognition: " + event.error;
+        if (event.error === 'no-speech') {
+            voiceStatus.textContent = "No speech detected. Make sure your mic is working and allowed.";
+            setTimeout(() => recognition.start(), 1000);
+        } else {
+            voiceStatus.textContent = "Error: " + event.error;
+        }
         voiceStatus.style.color = "var(--error)";
         voiceBtn.textContent = "TRY AGAIN";
         voiceBtn.classList.add('pulse');
